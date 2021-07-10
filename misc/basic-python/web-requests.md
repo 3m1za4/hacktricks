@@ -23,6 +23,7 @@ body_text = gr.text
 ret_cookies = gr.cookies
 is_redirect = gr.is_redirect
 is_permanent_redirect = gr.is_permanent_redirect
+float_seconds = gr.elapsed.total_seconds() 10.231
 
 #Regular Post requests sending parameters (data)
 pr = requests.post(url, data=params, headers=headers, cookies=cookies, verify=False, allow_redirects=True, proxies=proxies)
@@ -33,6 +34,9 @@ pr = requests.post(url, json=params, headers=headers, cookies=cookies, verify=Fa
 #Post request sending a file(files) and extra values
 filedict = {"<FILE_PARAMETER_NAME>" : ("filename.png", open("filename.png", 'rb').read(), "image/png")}
 pr = requests.post(url, data={"submit": "submit"}, files=filedict)
+
+#Useful for presenting results in boolean/timebased injections
+print(f"\rflag: {flag}{char}", end="")
 ```
 
 ## Python cmd to exploit a RCE

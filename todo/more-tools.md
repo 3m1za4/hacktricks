@@ -27,6 +27,7 @@
 * [https://builtwith.com/](https://builtwith.com/)
 * [https://www.spiderfoot.net/](https://www.spiderfoot.net/)
 * [https://github.com/zricethezav/gitleaks](https://github.com/zricethezav/gitleaks)
+* [https://www.nmmapper.com/sys/tools/subdomainfinder/](https://www.nmmapper.com/sys/tools/subdomainfinder/) : 8 Subdomain finder tools, sublist3r, amass and more
 
 ## **WEB**
 
@@ -110,6 +111,5 @@ y por aqui la metodologia owasp para analizar firmware: [https://github.com/scri
 * [https://github.com/ElevenPaths/HomePWN](https://github.com/ElevenPaths/HomePWN) : Hacking IoT \(Wifi, BLE, SSDP, MDNS\)
 * [https://github.com/rackerlabs/scantron](https://github.com/rackerlabs/scantron) : automating scanning
 * [https://github.com/doyensec/awesome-electronjs-hacking](https://github.com/doyensec/awesome-electronjs-hacking) : This list aims to cover Electron.js security related topics.
-
-## 
+* [https://github.com/serain/bbrecon](https://github.com/serain/bbrecon) : Info about BB programs
 

