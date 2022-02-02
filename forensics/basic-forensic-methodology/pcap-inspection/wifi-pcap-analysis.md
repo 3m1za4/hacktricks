@@ -2,11 +2,11 @@
 
 ## Check BSSIDs
 
-When you receive a capture whose principal traffic is Wifi using WireShark you can start investigating all the SSIDs of the capture with _Wireless --&gt; WLAN Traffic_:
+When you receive a capture whose principal traffic is Wifi using WireShark you can start investigating all the SSIDs of the capture with _Wireless --> WLAN Traffic_:
 
-![](../../../.gitbook/assets/image%20%28426%29.png)
+![](<../../../.gitbook/assets/image (424).png>)
 
-![](../../../.gitbook/assets/image%20%28429%29.png)
+![](<../../../.gitbook/assets/image (425).png>)
 
 ### Brute Force
 
@@ -32,11 +32,9 @@ Once you have detected **unknown MAC** addresses communicating inside the networ
 
 ## Decrypt Traffic
 
-Edit --&gt; Preferences --&gt; Protocols --&gt; IEEE 802.11--&gt; Edit
+Edit --> Preferences --> Protocols --> IEEE 802.11--> Edit
 
-![](../../../.gitbook/assets/image%20%28427%29.png)
-
-
+![](<../../../.gitbook/assets/image (426).png>)
 
 
 

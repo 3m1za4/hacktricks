@@ -2,7 +2,7 @@
 
 ## Kerberoast
 
-The goal of **Kerberoasting** is to harvest **TGS tickets for services that run on behalf of user accounts** in the AD, not computer accounts. Thus, **part** of these TGS **tickets are** **encrypted** with **keys** derived from user passwords. As a consequence, their credentials could be **cracked offline**.  
+The goal of **Kerberoasting** is to harvest **TGS tickets for services that run on behalf of user accounts** in the AD, not computer accounts. Thus, **part** of these TGS **tickets are** **encrypted** with **keys** derived from user passwords. As a consequence, their credentials could be **cracked offline**.\
 You can know that a **user account** is being used as a **service** because the property **"ServicePrincipalName"** is **not null**.
 
 Therefore, to perform Kerberoasting, only a domain account that can request for TGSs is necessary, which is anyone since no special privileges are required.
@@ -42,7 +42,7 @@ Invoke-Kerberoast -OutputFormat hashcat | % { $_.Hash } | Out-File -Encoding ASC
 
 ### Cracking
 
-```text
+```
 john --format=krb5tgs --wordlist=passwords_kerb.txt hashes.kerberoast
 hashcat -m 13100 --force -a 0 hashes.kerberoast passwords_kerb.txt
 ./tgsrepcrack.py wordlist.txt 1-MSSQLSvc~sql01.medin.local~1433-MYDOMAIN.LOCAL.kirbi
@@ -67,17 +67,16 @@ Kerberoast is very stealthy if exploitable
 * Security Event ID 4769 – A Kerberos ticket was requested
 * Since 4769 is very frequent, lets filter the results:
   * Service name should not be krbtgt
-  * Service name does not end with $ \(to filter out machine accounts used for services\)
-  * Account name should not be machine@domain \(to filter out requests from machines\)
-  * Failure code is '0x0' \(to filter out failures, 0x0 is success\)
+  * Service name does not end with $ (to filter out machine accounts used for services)
+  * Account name should not be machine@domain (to filter out requests from machines)
+  * Failure code is '0x0' (to filter out failures, 0x0 is success)
   * Most importantly, ticket encryption type is 0x17
 * Mitigation:
-  * Service Account Passwords should be hard to guess \(greater than 25 characters\)
-  * Use Managed Service Accounts \(Automatic change of password periodically and delegated SPN Management\)
+  * Service Account Passwords should be hard to guess (greater than 25 characters)
+  * Use Managed Service Accounts (Automatic change of password periodically and delegated SPN Management)
 
 ```bash
 Get-WinEvent -FilterHashtable @{Logname='Security';ID=4769} -MaxEvents 1000 | ?{$_.Message.split("`n")[8] -ne 'krbtgt' -and $_.Message.split("`n")[8] -ne '*$' -and $_.Message.split("`n")[3] -notlike '*$@*' -and $_.Message.split("`n")[18] -like '*0x0*' -and $_.Message.split("`n")[17] -like "*0x17*"} | select ExpandProperty message
 ```
 
 **More information about Kerberoasting in ired.team in** [**here** ](https://ired.team/offensive-security-experiments/active-directory-kerberos-abuse/t1208-kerberoasting)**and** [**here**](https://ired.team/offensive-security-experiments/active-directory-kerberos-abuse/kerberoasting-requesting-rc4-encrypted-tgs-when-aes-is-enabled)**.**
-

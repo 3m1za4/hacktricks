@@ -1,10 +1,12 @@
-# Containerd \(ctr\) Privilege Escalation
+# Containerd (ctr) Privilege Escalation
 
 ## Basic information
 
 Go to the following link to learn **what is containerd** and `ctr`:
 
-{% page-ref page="../../pentesting/2375-pentesting-docker.md" %}
+{% content-ref url="../../pentesting/2375-pentesting-docker.md" %}
+[2375-pentesting-docker.md](../../pentesting/2375-pentesting-docker.md)
+{% endcontent-ref %}
 
 ## PE 1
 
@@ -32,7 +34,7 @@ ctr run --mount type=bind,src=/,dst=/,options=rbind -t registry:5000/ubuntu:late
 
 ## PE 2
 
-Run a container privileged and escape from it.  
+Run a container privileged and escape from it.\
 You can run a privileged container as:
 
 ```bash
@@ -41,5 +43,6 @@ You can run a privileged container as:
 
 Then you can use some of the techniques mentioned in the following page to **escape from it abusing privileged capabilities**:
 
-{% page-ref page="docker-breakout.md" %}
-
+{% content-ref url="docker-breakout/" %}
+[docker-breakout](docker-breakout/)
+{% endcontent-ref %}

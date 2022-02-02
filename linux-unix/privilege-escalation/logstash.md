@@ -63,4 +63,3 @@ If no wildcard is used, you can apply those changes to an existing pipeline conf
 ## References
 
 * [https://insinuator.net/2021/01/pentesting-the-elk-stack/](https://insinuator.net/2021/01/pentesting-the-elk-stack/)
-
