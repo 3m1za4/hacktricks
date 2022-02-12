@@ -339,6 +339,7 @@
 * [5800,5801,5900,5901 - Pentesting VNC](pentesting/pentesting-vnc.md)
 * [5984,6984 - Pentesting CouchDB](pentesting/5984-pentesting-couchdb.md)
 * [5985,5986 - Pentesting WinRM](pentesting/5985-5986-pentesting-winrm.md)
+* [5985,5986 - Pentesting OMI](pentesting/5985-5986-pentesting-omi.md)
 * [6000 - Pentesting X11](pentesting/6000-pentesting-x11.md)
 * [6379 - Pentesting Redis](pentesting/6379-pentesting-redis.md)
 * [8009 - Pentesting Apache JServ Protocol (AJP)](pentesting/8009-pentesting-apache-jserv-protocol-ajp.md)
@@ -352,6 +353,7 @@
 * [10000 - Pentesting Network Data Management Protocol (ndmp)](pentesting/10000-network-data-management-protocol-ndmp.md)
 * [11211 - Pentesting Memcache](pentesting/11211-memcache.md)
 * [15672 - Pentesting RabbitMQ Management](pentesting/15672-pentesting-rabbitmq-management.md)
+* [24007,24008,24009,49152 - Pentesting GlusterFS](pentesting/24007-24008-24009-49152-pentesting-glusterfs.md)
 * [27017,27018 - Pentesting MongoDB](pentesting/27017-27018-mongodb.md)
 * [44134 - Pentesting Tiller (Helm)](pentesting/44134-pentesting-tiller-helm.md)
 * [44818/UDP/TCP - Pentesting EthernetIP](pentesting/44818-ethernetip.md)
@@ -521,6 +523,7 @@
     * [Kubernetes SecurityContext(s)](pentesting/pentesting-kubernetes/kubernetes-hardening/kubernetes-securitycontext-s.md)
     * [Kubernetes NetworkPolicies](pentesting/pentesting-kubernetes/kubernetes-hardening/kubernetes-networkpolicies.md)
   * [Kubernetes Access to other Clouds](cloud-security/pentesting-kubernetes/kubernetes-access-to-other-clouds.md)
+  * [Namespace Escalation](cloud-security/pentesting-kubernetes/namespace-escalation.md)
 * [Cloud Security Review](cloud-security/cloud-security-review.md)
 * [AWS Security](cloud-security/aws-security.md)
 
